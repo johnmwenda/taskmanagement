@@ -41,6 +41,7 @@ INSTALLED_APPS = [
     'tasksystem.utils',
     'tasksystem.accounts',
     'tasksystem.departments',
+    'tasksystem.tasks',
 
     'rest_framework',
 ]
