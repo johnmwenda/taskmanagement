@@ -2,6 +2,7 @@ from django.db import models
 from django.contrib.auth.models import AbstractBaseUser, PermissionsMixin
 
 from tasksystem.accounts.managers import UserManager
+from tasksystem.departments.models import Department
 
 # Create your models here.
 class User(AbstractBaseUser, PermissionsMixin):
@@ -12,6 +13,8 @@ class User(AbstractBaseUser, PermissionsMixin):
     is_active = models.BooleanField(default=True)
     is_staff = models.BooleanField(default=False)
     is_manager = models.BooleanField(default=False)
+    is_member = models.BooleanField(default=False)
+    department = models.ForeignKey(Department, on_delete=models.SET_NULL, null=True)
     objects = UserManager()
 
     USERNAME_FIELD = 'email'
@@ -32,3 +35,9 @@ class User(AbstractBaseUser, PermissionsMixin):
         if not self.password:
             self.password = str(uuid.uuid4()).replace('-', '')
         super(User, self).save(*args, **kwargs)
+
+    # def get_manager_object(self):
+    #     if self.is_manager:
+    #         return self
+    #     else:
+    #         pass
