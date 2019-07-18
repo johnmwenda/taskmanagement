@@ -9,7 +9,7 @@ from django.contrib.contenttypes.fields import GenericForeignKey
 from django.contrib.contenttypes.models import ContentType
 from django.contrib.contenttypes.fields import GenericRelation
 
-from tasksystem.utils.models import CreatedModified
+from tasksystem.utils.models import SoftDeleteModel
 from tasksystem.departments.models import Category, Department
 
 class SupervisorTaskManager(models.Manager):
@@ -26,7 +26,7 @@ def get_default_category():
     return Category.objects.filter(name='DEFAULT')
     
 
-class Task(CreatedModified):
+class Task(SoftDeleteModel):
     '''
     Most important model for this application. Allows users to create and list their tasks
     '''
@@ -86,17 +86,11 @@ class Task(CreatedModified):
         related_name='subscribed_tasks',
         verbose_name='Subsribe Department',
         blank=True)
-    
-    def get_owner_object(self):
-        '''
-        Returns the object that has owner information
-        '''
-        return self
 
     def __str__(self):
         return self.name
     
-class TaskProgress(CreatedModified):
+class TaskProgress(SoftDeleteModel):
     task = models.ForeignKey(Task, verbose_name='Task Progress')
     progress_comment = models.TextField(max_length=1000, help_text='Add a progress message')
 
@@ -105,7 +99,7 @@ class TaskProgress(CreatedModified):
                     default=0,
                     validators=[MinValueValidator(10), MaxValueValidator(400)])
 
-class TaskAttachment(CreatedModified):
+class TaskAttachment(SoftDeleteModel):
     '''
     A task might have one or more supporting documents/images
     '''
@@ -116,7 +110,7 @@ class TaskAttachment(CreatedModified):
     class Meta:
         ordering = ('-created_date',)
 
-class TaskSubscription(CreatedModified):
+class TaskSubscription(SoftDeleteModel):
     '''
     A user can subscribe to a task, or be added as part of a task user group by another user
     '''
