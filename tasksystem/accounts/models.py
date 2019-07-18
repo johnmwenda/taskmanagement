@@ -15,6 +15,13 @@ class User(AbstractBaseUser, PermissionsMixin):
     is_manager = models.BooleanField(default=False)
     is_member = models.BooleanField(default=False)
     department = models.ForeignKey(Department, on_delete=models.SET_NULL, null=True)
+    follows = models.ManyToManyField(
+        'self',
+        related_name='followed_by',
+        symmetrical=False,
+        blank=True,
+    )
+
     objects = UserManager()
 
     USERNAME_FIELD = 'email'
@@ -35,6 +42,12 @@ class User(AbstractBaseUser, PermissionsMixin):
         if not self.password:
             self.password = str(uuid.uuid4()).replace('-', '')
         super(User, self).save(*args, **kwargs)
+
+    # def delete(self, *args, **kwargs):
+    #     print("called")
+    #     # super().delete(*args, **kwargs)
+
+    
 
     # def get_manager_object(self):
     #     if self.is_manager:
