@@ -1,4 +1,5 @@
 from django.db import models
+from django.db.models import Q
 from django.contrib.auth import get_user_model
 from django.conf import settings
 from django.core.validators import (
@@ -13,12 +14,31 @@ from tasksystem.utils.models import SoftDeleteModel
 from tasksystem.departments.models import Category, Department
 
 class SupervisorTaskManager(models.Manager):
-    # custom queries related to supervisor role tasks
+    ''' 
+    custom queries related to supervisor role tasks
+    initial queryset will be all the tasks that this user has authorization
+    this includes:
+    1. all public tasks
+    2. all my tasks (reporter)
+    3. all assigned tasks
+    4. all private tasks originating within my department
+    '''
     def get_private_tasks(self):
         pass
 
 class JuniorTaskManager(models.Manager):
-    # custom queries related to junior role tasks
+    ''' 
+    custom queries related to junior role tasks
+    initial queryset will be all the tasks that this user has authorization
+    this includes:
+    1. all public tasks
+    2. all my tasks whether private or public (reporter)
+    3. all assigned tasks
+    '''
+
+    def get_queryset(self):
+        return super().get_queryset().exclude(Q(access_level='prv') & ~Q(access_level='prv')) 
+
     def get_private_tasks(self):
         pass
 
@@ -72,6 +92,7 @@ class Task(SoftDeleteModel):
     )
     priority = models.CharField(max_length=1, choices=PRIORITY, default='m')
     category = models.ForeignKey(Category, default=get_default_category)
+    department = models.ForeignKey(Department, null=True, blank=True)
     user_subscribers = models.ManyToManyField(
         get_user_model(),
         through='TaskSubscription',
