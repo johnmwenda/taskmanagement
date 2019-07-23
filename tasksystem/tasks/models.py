@@ -9,9 +9,19 @@ from django.core.validators import (
 from django.contrib.contenttypes.fields import GenericForeignKey
 from django.contrib.contenttypes.models import ContentType
 from django.contrib.contenttypes.fields import GenericRelation
+from django.utils import timezone
+from django.core.exceptions import ValidationError
 
 from tasksystem.utils.models import SoftDeleteModel
 from tasksystem.departments.models import Category, Department
+
+# helpers
+def get_default_category():
+    return Category.objects.filter(name='DEFAULT')
+
+def validate_date_not_in_past(value):
+    if value < timezone.now():
+        raise ValidationError('due date cannot be in the past')
 
 class SupervisorTaskManager(models.Manager):
     ''' 
@@ -42,9 +52,10 @@ class JuniorTaskManager(models.Manager):
     def get_private_tasks(self):
         pass
 
-def get_default_category():
-    return Category.objects.filter(name='DEFAULT')
-    
+
+class TaskManager(models.Manager):
+    pass
+
 
 class Task(SoftDeleteModel):
     '''
@@ -57,7 +68,7 @@ class Task(SoftDeleteModel):
 
     name = models.CharField(max_length=200)
     description = models.TextField(max_length=1000, help_text='Enter a brief description of the task', null=True, blank=True)
-    due_date = models.DateTimeField(blank=True, null=True)
+    due_date = models.DateTimeField(help_text='Enter due date', validators=[validate_date_not_in_past])
     complete_time = models.DateTimeField(blank=True, null=True)
     reporter = models.ForeignKey(get_user_model(), verbose_name='Reporter', editable=True)
     assignees = models.ManyToManyField(
@@ -92,13 +103,14 @@ class Task(SoftDeleteModel):
     )
     priority = models.CharField(max_length=1, choices=PRIORITY, default='m')
     category = models.ForeignKey(Category, default=get_default_category)
-    department = models.ForeignKey(Department, null=True, blank=True)
+    department = models.ForeignKey(Department)
     user_subscribers = models.ManyToManyField(
         get_user_model(),
         through='TaskSubscription',
         through_fields=('task','user'),
         related_name='subscribed_tasks',
         verbose_name='Subsribe Users',
+        null=True,
         blank=True)
     department_subscribers = models.ManyToManyField(
         Department,
@@ -106,10 +118,15 @@ class Task(SoftDeleteModel):
         through_fields=('task','department'),
         related_name='subscribed_tasks',
         verbose_name='Subsribe Department',
+        null=True,
         blank=True)
 
     def __str__(self):
         return self.name
+
+    @property
+    def is_complete(self):
+        return bool(self.complete_time and self.complete_time < timezone.now())
     
 class TaskProgress(SoftDeleteModel):
     task = models.ForeignKey(Task, verbose_name='Task Progress')
@@ -125,20 +142,29 @@ class TaskAttachment(SoftDeleteModel):
     A task might have one or more supporting documents/images
     '''
     name = models.CharField(max_length=100)
-    task = models.ForeignKey(Task, verbose_name='Attachments')
+    task = models.ForeignKey(Task, related_name='attachments', verbose_name='Task')
     file_name = models.FileField(upload_to='tasks/%Y/%m/%d/', max_length=255, null=True, blank=True)
 
     class Meta:
         ordering = ('-created_date',)
 
+    def delete(self, *args, **kwargs):
+        self.file_name.delete()
+        super().delete(*args, **kwargs)
+
 class TaskSubscription(SoftDeleteModel):
     '''
     A user can subscribe to a task, or be added as part of a task user group by another user
     '''
-    task = models.ForeignKey(Task)
+    task = models.ForeignKey(Task, related_name='subscribers')
     user = models.ForeignKey(get_user_model(), null=True, blank=True)
     department = models.ForeignKey(Department, null=True, blank=True)
     created_by = models.ForeignKey(get_user_model(), related_name='created_by')
+    TASK_STATUS = (
+        ('DEPARTMENT', 'DEPARMENT'),
+        ('USER', 'USER'),
+    )
+    subscriber_type = models.CharField(max_length=20, choices=TASK_STATUS)
 
     def __str__(self):
         return f'task subscribed by {self.user} or {self.department}'

@@ -14,7 +14,7 @@ class User(AbstractBaseUser, PermissionsMixin):
     is_staff = models.BooleanField(default=False)
     is_manager = models.BooleanField(default=False)
     is_member = models.BooleanField(default=False)
-    department = models.ForeignKey(Department, on_delete=models.SET_NULL, null=True)
+    department = models.ForeignKey(Department, on_delete=models.SET_NULL, null=True, blank=True)
     follows = models.ManyToManyField(
         'self',
         related_name='followed_by',
