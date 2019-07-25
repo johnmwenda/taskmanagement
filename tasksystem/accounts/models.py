@@ -1,3 +1,4 @@
+import uuid
 from django.db import models
 from django.contrib.auth.models import AbstractBaseUser, PermissionsMixin
 from django.db.models.signals import post_save
@@ -11,9 +12,9 @@ from tasksystem.departments.models import Department
 # Create your models here.
 class User(AbstractBaseUser, PermissionsMixin):
     date_joined = models.DateTimeField(auto_now_add=True)
-    email = models.EmailField(max_length=255, unique=True)
-    first_name = models.CharField(max_length=255)
-    last_name = models.CharField(max_length=255)
+    email = models.EmailField(max_length=255, null=False, blank=False, unique=True)
+    first_name = models.CharField(max_length=255, null=False, blank=False) 
+    last_name = models.CharField(max_length=255, null=False, blank=False)
     is_active = models.BooleanField(default=True)
     is_staff = models.BooleanField(default=False)
     is_manager = models.BooleanField(default=False)
@@ -37,12 +38,13 @@ class User(AbstractBaseUser, PermissionsMixin):
         return self.email
 
     def get_short_name(self):
-        return self.email
+        return self.first_name
 
     def get_full_name(self):
-        return self.email
+        return self.first_name + ' ' + self.last_name
 
     def save(self, *args, **kwargs):
+        # if no password is provided generate a password, to avoid passwordless access
         if not self.password:
             self.password = str(uuid.uuid4()).replace('-', '')
         super(User, self).save(*args, **kwargs)
