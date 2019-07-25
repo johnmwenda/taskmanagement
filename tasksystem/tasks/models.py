@@ -110,7 +110,6 @@ class Task(SoftDeleteModel):
         through_fields=('task','user'),
         related_name='subscribed_tasks',
         verbose_name='Subsribe Users',
-        null=True,
         blank=True)
     department_subscribers = models.ManyToManyField(
         Department,
@@ -118,7 +117,6 @@ class Task(SoftDeleteModel):
         through_fields=('task','department'),
         related_name='subscribed_tasks',
         verbose_name='Subsribe Department',
-        null=True,
         blank=True)
 
     def __str__(self):
