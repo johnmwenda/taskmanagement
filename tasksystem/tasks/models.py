@@ -10,18 +10,13 @@ from django.contrib.contenttypes.fields import GenericForeignKey
 from django.contrib.contenttypes.models import ContentType
 from django.contrib.contenttypes.fields import GenericRelation
 from django.utils import timezone
-from django.core.exceptions import ValidationError
 
 from tasksystem.utils.models import SoftDeleteModel
 from tasksystem.departments.models import Category, Department
+from .validators import validate_date_not_in_past
 
-# helpers
-def get_default_category():
+def get_default_category(self):
     return Category.objects.filter(name='DEFAULT')
-
-def validate_date_not_in_past(value):
-    if value < timezone.now():
-        raise ValidationError('due date cannot be in the past')
 
 class SupervisorTaskManager(models.Manager):
     ''' 
@@ -99,7 +94,7 @@ class Task(SoftDeleteModel):
     PRIORITY = (
         ('l', 'Low'),
         ('m', 'Medium'),
-        ('h', 'High'),
+        ('h', 'High'), 
     )
     priority = models.CharField(max_length=1, choices=PRIORITY, default='m')
     category = models.ForeignKey(Category, default=get_default_category)
@@ -125,6 +120,7 @@ class Task(SoftDeleteModel):
     @property
     def is_complete(self):
         return bool(self.complete_time and self.complete_time < timezone.now())
+
     
 class TaskProgress(SoftDeleteModel):
     task = models.ForeignKey(Task, verbose_name='Task Progress')
