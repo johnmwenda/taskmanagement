@@ -15,7 +15,13 @@ Including another URLconf
 """
 from django.conf.urls import url
 from django.contrib import admin
+from tasksystem.accounts.api import (
+    views as accounts_api_views
+)
 
 urlpatterns = [
     url(r'^admin/', admin.site.urls),
+    url(r'^api/v2/login/', accounts_api_views.UserSignInView.as_view(), name='login'),
+    url(r'^api/v2/logout/', accounts_api_views.UserSignInView.as_view(), name='logout'),
+    url(r'^api-auth/', include('rest_framework.urls')),
 ]
