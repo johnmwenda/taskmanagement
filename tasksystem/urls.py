@@ -23,5 +23,6 @@ urlpatterns = [
     url(r'^admin/', admin.site.urls),
     url(r'^api/v2/login/', accounts_api_views.UserSignInView.as_view(), name='login'),
     url(r'^api/v2/logout/', accounts_api_views.UserSignInView.as_view(), name='logout'),
+    url(r'^api/v2/signup', accounts_api_views.UserSignUpView.as_view(), name='signup'),
     url(r'^api-auth/', include('rest_framework.urls')),
 ]
