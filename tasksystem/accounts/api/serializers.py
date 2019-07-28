@@ -1,12 +1,15 @@
 from rest_framework import serializers
 from rest_framework.validators import UniqueValidator
 
+from django.core import exceptions
 from django.contrib.auth import get_user_model
 from django.contrib.auth import authenticate
+from django.contrib.auth import password_validation
 
 from tasksystem.departments.api.serializers import DepartmentSlimSerializer
 
 User = get_user_model()
+from tasksystem.tasks.models import Department
 
 class BasicUserSerializer(serializers.ModelSerializer):
     """User serializer to be used in model relations."""
@@ -65,3 +68,39 @@ class UserSerializer(serializers.ModelSerializer):
         model=User
         fields=('pk', 'email', 'first_name', 'last_name', 'is_active', 'is_member', 
                     'is_manager', 'is_staff', 'is_superuser', 'department')
+
+
+class UserSignupSerializer(serializers.Serializer):
+    email = serializers.EmailField(
+        validators=[UniqueValidator(queryset=User.objects.all(),
+                                    message='A user with this email address exists')] )
+    first_name = serializers.CharField(
+        max_length=30, allow_null=False, allow_blank=True, required=True)
+    last_name = serializers.CharField(
+        max_length=30, allow_null=False, allow_blank=True, required=True)
+    password = serializers.CharField(required=True)
+    department = serializers.PrimaryKeyRelatedField(queryset=Department.objects.all(), 
+                 allow_null=True, required=False)
+
+    class Meta:
+        fields = ('is_member', 'is_manager', 'is_staff')
+    
+    def validate(self, attrs):        
+        # valid/strong password checks
+        errors = {}
+        try:
+            password_validation.validate_password(password=attrs.get('password'), user=User)
+        except exceptions.ValidationError as e:
+            errors['password'] = list(e.messages)
+
+        if errors:
+            raise serializers.ValidationError(errors)
+
+        return attrs
+
+    def create(self, validated_data):
+        user = User.objects.create_user(
+            email=validated_data.pop('email'),
+            password=validated_data.pop('password'),
+            **validated_data)
+        return user
