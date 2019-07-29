@@ -11,6 +11,8 @@ https://docs.djangoproject.com/en/1.11/ref/settings/
 """
 
 import os
+import environ
+env = environ.Env()
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -85,10 +87,35 @@ WSGI_APPLICATION = 'tasksystem.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
+        'ENGINE': 'django.db.backends.postgresql_psycopg2',
+        'NAME': env.str('POSTGRES_DB_NAME', 'taskmanagementapi'),
+        'USER': env.str('POSTGRES_DB_USER', 'postgres'),
+        'PASSWORD': env.str('POSTGRES_DB_PASSWORD', 'password015!'),
+        'HOST': env.str('POSTGRES_DB_HOST', 'localhost'),
+        'PORT': env.str('POSTGRES_DB_PORT', 5432),
+        'OPTIONS': {
+            'connect_timeout': 5000,
+        }
     }
 }
+
+# DATABASES = {
+#     'default': {
+#         'ENGINE': 'django.db.backends.sqlite3',
+#         'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
+#     }
+# }
+
+# DATABASES = {
+#     'default': {
+#         'ENGINE': 'django.db.backends.mysql',
+#         'NAME': 'taskmanagement',
+#         'USER': 'root',
+#         'PASSWORD': 'sysop2006',
+#         'HOST': '127.0.0.1',
+#         'PORT': '3306'
+#     }
+# }
 
 
 # Password validation
