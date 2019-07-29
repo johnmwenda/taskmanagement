@@ -17,15 +17,28 @@ from django.conf.urls import url, include
 from django.contrib import admin
 from django.conf.urls.static import static
 from django.conf import settings
+
+from rest_framework import routers
+
+from tasksystem.tasks.api import (
+    views as tasks_api_views
+)
 from tasksystem.accounts.api import (
     views as accounts_api_views
 )
+# /api/v2 - django rest framework
+router = routers.DefaultRouter()
+
+# tasks app
+router.register(r'tasks', tasks_api_views.TaskViewSet, base_name='tasks')
+
 
 urlpatterns = [
     url(r'^admin/', admin.site.urls),
     url(r'^api/v2/login/', accounts_api_views.UserSignInView.as_view(), name='login'),
     url(r'^api/v2/logout/', accounts_api_views.UserSignInView.as_view(), name='logout'),
     url(r'^api/v2/signup', accounts_api_views.UserSignUpView.as_view(), name='signup'),
+    url(r'^api/v2/', include(router.urls)),
     url(r'^api-auth/', include('rest_framework.urls')),
 ]
 
