@@ -15,6 +15,8 @@ Including another URLconf
 """
 from django.conf.urls import url, include
 from django.contrib import admin
+from django.conf.urls.static import static
+from django.conf import settings
 from tasksystem.accounts.api import (
     views as accounts_api_views
 )
@@ -26,3 +28,12 @@ urlpatterns = [
     url(r'^api/v2/signup', accounts_api_views.UserSignUpView.as_view(), name='signup'),
     url(r'^api-auth/', include('rest_framework.urls')),
 ]
+
+if settings.DEBUG:
+    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+
+    import debug_toolbar
+
+    urlpatterns += [
+        url(r'^__debug__/', include(debug_toolbar.urls)),
+    ]
