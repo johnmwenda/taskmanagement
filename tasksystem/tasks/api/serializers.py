@@ -58,12 +58,13 @@ class TaskCreatingSerializer(serializers.ModelSerializer):
     department_subscribers = serializers.PrimaryKeyRelatedField(
         many=True, queryset=Department.objects.all(), allow_null=True, required=False)
     taskprogress_set = TaskProgressSerializer(many=True)
+    is_complete = serializers.BooleanField(required=False)
 
     class Meta:
         model = Task
         fields = ('name', 'description', 'due_date', 'status', 'access_level', 'priority',
                   'category', 'department', 'user_subscribers', 'department_subscribers',
-                  'assignees', 'taskprogress_set')
+                  'assignees', 'taskprogress_set', 'is_complete', 'complete_time')
 
     def validate_user_subscribers(self, value):
         # validate reporter cannot subscribe to their own task
@@ -82,6 +83,13 @@ class TaskCreatingSerializer(serializers.ModelSerializer):
                     raise serializers.ValidationError(
                         [f'A junior cannot assign a task to a supervisor. ID {assignee.pk} - {assignee.email} is a supervisor'])
         return value
+
+    def validate(self, attrs):
+        # if is_complete field is passed, pop, and set complete_time
+        is_complete = attrs.pop('is_complete', None)
+        if is_complete and is_complete is True:
+            attrs['complete_time'] = timezone.now()
+        return attrs
 
     def save_taskprogress_set(self, task, taskprogress_set):
         '''
