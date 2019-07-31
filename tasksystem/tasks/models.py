@@ -9,6 +9,7 @@ from django.core.validators import (
 from django.utils import timezone
 
 from tasksystem.utils.models import SoftDeleteModel, SoftDeleteManager
+from tasksystem.accounts.models import User
 from tasksystem.departments.models import Category, Department
 from .validators import validate_date_not_in_past
 
@@ -43,7 +44,8 @@ class SupervisorManager(SoftDeleteManager):
                 Q(assignees__department=user.department_id) &
                 Q(access_level='prv')
             )
-        )
+        ).select_related('department','category', 'reporter').prefetch_related(
+            'taskprogress_set', 'subscribers', 'assignees', 'attachments')
         return qs.distinct()
 
 
@@ -66,11 +68,21 @@ class JuniorManager(SoftDeleteManager):
         return super(JuniorManager, self).get_queryset()
 
     def tasks(self, user):
-        reporter_tasks = user.task_set.all()
-        assigned_tasks = user.assigned_tasks.all()
+        qs = Task.objects.filter(
+                Q(assignees=user) |
+                Q(reporter=user) |
+                Q(user_subscribers=user) |
+                Q(access_level='pub')
+            ).select_related('department','category','reporter').prefetch_related(
+                'assignees', 'user_subscribers', 'taskprogress_set', 'subscribers', 'attachments')
+        return qs.distinct()
+
+
         subscribed_tasks = user.subscribed_tasks.all()
         public_tasks = Task.objects.filter(access_level='pub')
         qs = public_tasks | reporter_tasks | assigned_tasks | subscribed_tasks
+        qs.select_related('department','category', 'reporter').prefetch_related(
+            'taskprogress_set', 'subscribers', 'assignees', 'attachments')
         return qs.distinct()
 
 
@@ -153,14 +165,14 @@ class Task(SoftDeleteModel):
 
 
 class TaskProgress(SoftDeleteModel):
-    task = models.ForeignKey(Task, verbose_name='Task Progress')
+    task = models.ForeignKey(Task, verbose_name='Task Progress', null=False)
     progress_comment = models.TextField(
-        max_length=1000, help_text='Add a progress message')
+        max_length=1000, help_text='Add a progress message', null=False)
 
     progress_percentage = models.IntegerField(verbose_name='percentage done',
                                               help_text='What percentage of the task is done?',
                                               default=0,
-                                              validators=[MinValueValidator(10), MaxValueValidator(400)])
+                                              validators=[MinValueValidator(0), MaxValueValidator(100)])
 
 
 class TaskAttachment(SoftDeleteModel):
