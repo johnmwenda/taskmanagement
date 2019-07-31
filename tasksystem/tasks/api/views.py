@@ -1,5 +1,6 @@
 from rest_framework import viewsets
 from rest_framework.permissions import IsAuthenticated
+from rest_framework.response import Response
 
 from tasksystem.tasks.models import Task
 from tasksystem.tasks.api.serializers import (
@@ -28,9 +29,29 @@ class TaskViewSet(viewsets.ModelViewSet):
         return queryset
 
     def get_serializer_class(self):
-        if self.action in ['create', 'update']:
+        if self.action in ['create', 'update', 'partial_update']:
             return TaskCreatingSerializer
         return TaskViewSerializer
 
+    def partial_update(self, request, *args, **kwargs):
+        instance = self.get_object()
+        serializer = self.get_serializer(
+            instance, data=request.data, partial=True)
+        serializer.is_valid(raise_exception=True)
+
+        # retrieve the old data before update
+        old_data = {}
+        for key in request.data.keys():
+            old_data[key] = getattr(instance, key)
+
+        # save new data
+        serializer.save()
+
+        if getattr(instance, '_prefetched_objects_cache', None):
+            # If 'prefetch_related' has been applied to a queryset, we need to
+            # forcibly invalidate the prefetch cache on the instance.
+            instance._prefetched_objects_cache = {}
+
+        return Response(serializer.data)
     def perform_create(self, serializer):
         serializer.save(reporter=self.request.user)
