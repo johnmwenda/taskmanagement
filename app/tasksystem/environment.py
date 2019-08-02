@@ -1,5 +1,5 @@
-# ENVIRONMENT = 'local'
-ENVIRONMENT = 'development'
+ENVIRONMENT = 'local'
+# ENVIRONMENT = 'development'
 # ENVIRONMENT = 'production'
 
 SETTINGS_MODULE = 'tasksystem.settings.local'

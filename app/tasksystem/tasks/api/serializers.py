@@ -9,6 +9,8 @@ from tasksystem.accounts.models import User
 
 from tasksystem.accounts.api.serializers import BasicUserSerializer
 
+from tasksystem.tasks.signals import task_progress_update
+
 
 class TaskAttachmentSerializer(serializers.ModelSerializer):
     class Meta:
@@ -39,6 +41,10 @@ class TaskProgressSerializer(serializers.ModelSerializer):
         task = validated_data.pop('task', None)
         validated_data.pop('progress_instance', None)
         instance = TaskProgress.objects.create(task=task, **validated_data)
+        # call custom signal to notify receivers of a partial update
+        task_progress_update.send(
+            sender=task, instance=instance)
+        return instance
 
     def update(self, instance, validated_data):
         instance = validated_data.pop('progress_instance', None)

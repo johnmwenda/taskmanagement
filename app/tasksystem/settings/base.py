@@ -13,6 +13,8 @@ https://docs.djangoproject.com/en/1.11/ref/settings/
 import os
 import environ
 env = environ.Env()
+#read .env
+environ.Env.read_env()
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -40,13 +42,13 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
 
+    'rest_framework',
     'rest_framework.authtoken',
+
     'tasksystem.utils',
     'tasksystem.accounts',
     'tasksystem.departments',
     'tasksystem.tasks',
-
-    'rest_framework',
 ]
 
 AUTH_USER_MODEL = 'accounts.User'
@@ -141,7 +143,7 @@ AUTH_PASSWORD_VALIDATORS = [
 
 LANGUAGE_CODE = 'en-us'
 
-TIME_ZONE = 'UTC'
+TIME_ZONE = 'Africa/Nairobi'
 
 USE_I18N = True
 
@@ -150,21 +152,38 @@ USE_L10N = True
 USE_TZ = True
 
 
+
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/1.11/howto/static-files/
 
 STATIC_URL = '/static/'
 STATIC_ROOT = os.path.join(BASE_DIR, 'static')
 
+# 'tasksystem.utils.permissions.TaskSystemPermission'
+
+# 'DEFAULT_FILTER_BACKENDS': ('rest_framework.filters.DjangoFilterBackend',
+#                                 'rest_framework.filters.OrderingFilter',)
+
 REST_FRAMEWORK = {
-    'DEFAULT_PERMISSION_CLASSES':('rest_framework.permissions.IsAuthenticated',),
-    'PAGINATE_BY':20,
-    'PAGINATE_BY_PARAM': 'limit', # Allow client to override, using `?limit=xxx`.
+    'DEFAULT_PERMISSION_CLASSES': ('rest_framework.permissions.IsAuthenticated',),
+    'PAGINATE_BY': 20,
+    # Allow client to override, using `?limit=xxx`.
+    'PAGINATE_BY_PARAM': 'limit',
     'TEST_REQUEST_DEFAULT_FORMAT': 'json',
     'DEFAULT_AUTHENTICATION_CLASSES': (
         'rest_framework.authentication.TokenAuthentication',
-        # 'rest_framework.authentication.SessionAuthentication',
     ),
     # 'DEFAULT_FILTER_BACKENDS': ('rest_framework.filters.DjangoFilterBackend',
     #                             'rest_framework.filters.OrderingFilter',)
 }
+
+MEDIA_URL = '/media/'
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+
+
+EMAIL_HOST = env.str('EMAIL_HOST', 'smtp.gmail.com')
+EMAIL_PORT = env.str('EMAIL_PORT', '587')
+EMAIL_HOST_USER = env.str('EMAIL_HOST_USER', 'your_email@host.com')
+EMAIL_HOST_PASSWORD = env.str('EMAIL_HOST_PASSWORD', 'password')
+EMAIL_USE_TLS = True
+EMAIL_USE_SSL = False

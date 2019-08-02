@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Email</title>
+</head>
+    <body style="font-size: larger ">
+    <p>Hello {{name}} </p>
+    <span>Please see update</span><br><br>
+    <div style="border:1px solid; border-color:green; min-height:37px; position: relative">
+        <div style="background-color: green; bottom: 0;position: absolute;top: 0;width: 8px;"></div>
+        <div style="margin-left: 10px">
+            <span><small>TASK</small> Create categories for all task departments</span> <br>
+            <span><small>Due by</small> <small>{{due_date}}</small></span> ||
+            <span><small>Progress</small> <small>{{progress_percentage}}/100</small></span><br>
+
+            <h4 style="margin-top:10px; font-weight: 100; margin-bottom: 5px"><small>UPDATE </small>{{created_by}}</h4>
+            <div style="margin-left: 10px">
+                <span><b>{{progress_comment}}</b><span>  
+            </div> 
+        </div>
+    </div>
+
+{% if extra %}
+    <p>{{extra}}</p>
+    </body>
+    </html>
+{% else %}
+    </body>
+    </html>
+{% endif %}

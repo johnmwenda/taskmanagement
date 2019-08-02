@@ -2,4 +2,7 @@ from django.apps import AppConfig
 
 
 class TasksConfig(AppConfig):
-    name = 'tasks'
+    name = 'tasksystem.tasks'
+
+    def ready(self):
+        import tasksystem.tasks.receivers
