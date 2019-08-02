@@ -81,11 +81,15 @@ class UserSignupSerializer(serializers.Serializer):
     password = serializers.CharField(required=True)
     department = serializers.PrimaryKeyRelatedField(queryset=Department.objects.all(), 
                  allow_null=True, required=False)
+    is_member = serializers.BooleanField()
+    is_manager = serializers.BooleanField()
+    is_staff = serializers.BooleanField(required=False)
 
     class Meta:
-        fields = ('is_member', 'is_manager', 'is_staff')
-    
-    def validate(self, attrs):        
+        model = User
+        fields = ('email', 'first_name', 'last_name', 'password', 'department', 'is_member', 'is_manager', 'is_staff')
+
+    def validate(self, attrs):
         # valid/strong password checks
         errors = {}
         try:
