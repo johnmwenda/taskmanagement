@@ -3,7 +3,16 @@
 .DS_Store
 .idea
 __pycache__
+.vscode
+*.env
 
 # Migrations
 **/migrations/*
 !**/migrations/__init__.py
+
+#Jupyter
+*.ipynb
+
+/htmlcov
+/app/tasksystem/static
+*local.py

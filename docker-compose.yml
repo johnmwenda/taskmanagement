@@ -1,0 +1,43 @@
+version: '3'
+volumes:
+  pgdata:
+services:
+  python: &python
+    # image: python:3.5
+    build:
+      context: .
+      dockerfile: docker/dev/python/Dockerfile
+    environment:
+    - PYTHONUNBUFFERED=1
+    volumes:
+      - ./app:/app
+    ports:
+      - 8000:8000
+    command: python manage.py runserver 0.0.0.0:8000
+    depends_on:
+      - postgres
+      - redis
+      - celery_worker
+  postgres:
+    image: postgres:10.3
+    environment:
+      POSTGRES_USER: tasksystem
+      POSTGRES_DB: tasksystem
+      POSTGRES_PASS: tasksystem
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - ./database:/database
+    ports:
+      - 54326:5432
+  ## message queue for celery
+  redis:
+    image: redis:5.0.5-alpine
+    ports:
+      - 6379:6379
+  celery_worker:
+    <<: *python
+    command: celery -A tasksystem worker --loglevel=info
+    ports: []
+    depends_on:
+      - redis
+      - postgres

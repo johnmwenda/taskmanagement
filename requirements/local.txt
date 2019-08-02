@@ -1,3 +1,0 @@
--r base.txt
-django-extensions==2.1.9
-django-silk==3.0.1
