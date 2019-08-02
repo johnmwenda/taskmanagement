@@ -45,7 +45,7 @@ class SupervisorManager(SoftDeleteManager):
                 Q(access_level='prv')
             )
         ).select_related('department','category', 'reporter').prefetch_related(
-            'taskprogress_set', 'subscribers', 'assignees', 'attachments')
+            'taskprogress_set__created_by', 'subscribers', 'assignees', 'attachments')
         return qs.distinct()
 
 
@@ -74,15 +74,7 @@ class JuniorManager(SoftDeleteManager):
                 Q(user_subscribers=user) |
                 Q(access_level='pub')
             ).select_related('department','category','reporter').prefetch_related(
-                'assignees', 'user_subscribers', 'taskprogress_set', 'subscribers', 'attachments')
-        return qs.distinct()
-
-
-        subscribed_tasks = user.subscribed_tasks.all()
-        public_tasks = Task.objects.filter(access_level='pub')
-        qs = public_tasks | reporter_tasks | assigned_tasks | subscribed_tasks
-        qs.select_related('department','category', 'reporter').prefetch_related(
-            'taskprogress_set', 'subscribers', 'assignees', 'attachments')
+                'assignees', 'user_subscribers', 'taskprogress_set__created_by', 'subscribers', 'attachments')
         return qs.distinct()
 
 
@@ -168,7 +160,7 @@ class TaskProgress(SoftDeleteModel):
     task = models.ForeignKey(Task, verbose_name='Task Progress', null=False)
     progress_comment = models.TextField(
         max_length=1000, help_text='Add a progress message', null=False)
-
+    created_by = models.ForeignKey(User, null=False)
     progress_percentage = models.IntegerField(verbose_name='percentage done',
                                               help_text='What percentage of the task is done?',
                                               default=0,

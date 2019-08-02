@@ -28,18 +28,21 @@ class TaskSubscriptionSerializer(serializers.ModelSerializer):
 class TaskProgressSerializer(serializers.ModelSerializer):
     id = serializers.IntegerField(
         allow_null=True, required=False)
+    created_by = BasicUserSerializer(read_only=True)
 
     class Meta:
         model = TaskProgress
-        fields = ('id', 'progress_comment', 'progress_percentage')
+        fields = ('id', 'progress_comment', 'progress_percentage', 'created_by',)
 
     @transaction.atomic
     def create(self, validated_data):
-        instance = validated_data.pop('instance', None)
-        return TaskProgress.objects.create(**validated_data)
+        task = validated_data.pop('task', None)
+        validated_data.pop('progress_instance', None)
+        instance = TaskProgress.objects.create(task=task, **validated_data)
 
     def update(self, instance, validated_data):
-        instance = validated_data.pop('instance', None)
+        instance = validated_data.pop('progress_instance', None)
+        validated_data.pop('created_by', None) # its already set, dont update it
         for attr, value in validated_data.items():
             setattr(instance, attr, value)
         instance.save()
@@ -111,8 +114,7 @@ class TaskCreatingSerializer(serializers.ModelSerializer):
             serializer.is_valid(raise_exception=True)
             # saving serializer will either create or update TaskProgress depending on whether we found
             # an existing instance
-            serializer.save(instance=progress_instance,
-                            task=task)
+            serializer.save(progress_instance=progress_instance, task=task, created_by=self.context.get('request').user)
 
     @transaction.atomic
     def update(self, instance, validated_data):
