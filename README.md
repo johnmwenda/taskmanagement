@@ -52,3 +52,6 @@ Ensure you set the celery broker(redis) url in django settings. Since we are run
 ```
 CELERY_BROKER_URL = 'redis://redis'
 ```
+
+## Docs
+Please follow this ![link](app/docs/sample_requests.md) to view the docs
